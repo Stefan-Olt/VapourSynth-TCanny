@@ -1,4 +1,4 @@
-#ifdef TCANNY_X86
+#if defined(TCANNY_X86) || defined(TCANNY_ARM)
 #include "TCanny.h"
 
 template<typename pixel_t>

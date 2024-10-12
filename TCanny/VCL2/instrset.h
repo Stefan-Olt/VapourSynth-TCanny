@@ -23,6 +23,17 @@
 #ifndef INSTRSET_H
 #define INSTRSET_H 20104
 
+#if defined(__ARM_NEON__)
+
+// limit to 128byte, since we want to use ARM-neon
+#define MAX_VECTOR_SIZE 128
+
+//limit to sse4.2
+#define INSTRSET 6
+
+//simulate header included
+#define __X86INTRIN_H
+#endif
 
 // Allow the use of floating point permute instructions on integer vectors.
 // Some CPU's have an extra latency of 1 or 2 clock cycles for this, but
@@ -138,12 +149,15 @@
 #endif
 
 // Header files for non-vector intrinsic functions including _BitScanReverse(int), __cpuid(int[4],int), _xgetbv(int)
+#if defined(__ARM_NEON__)
+#include "sse2neon.h"
+#else
 #ifdef _MSC_VER                        // Microsoft compiler or compatible Intel compiler
 #include <intrin.h>
 #else
 #include <x86intrin.h>                 // Gcc or Clang compiler
 #endif
-
+#endif
 
 #include <stdint.h>                    // Define integer types with known size
 #include <stdlib.h>                    // define abs(int)
@@ -253,6 +267,12 @@ constexpr int V_DC = -256;
 // input:  functionnumber = leaf (eax), ecxleaf = subleaf(ecx)
 // output: output[0] = eax, output[1] = ebx, output[2] = ecx, output[3] = edx
 static inline void cpuid(int output[4], int functionnumber, int ecxleaf = 0) {
+#if defined(__ARM_NEON__)
+    output[0] = 1;
+    output[1] = 1;
+    output[2] = (1 <<  0)|(1 <<  9)|(1 << 19)|(1 << 23)|(1 << 20);
+    output[3] = (1 <<  0)|(1 << 23)|(1 << 15)|(1 << 24)|(1 << 25)|(1 << 26); // Indicating support for up to SSE4.2
+#else
 #if defined(__GNUC__) || defined(__clang__)           // use inline assembly, Gnu/AT&T syntax
     int a, b, c, d;
     __asm("cpuid" : "=a"(a), "=b"(b), "=c"(c), "=d"(d) : "a"(functionnumber), "c"(ecxleaf) : );
@@ -276,6 +296,7 @@ static inline void cpuid(int output[4], int functionnumber, int ecxleaf = 0) {
         mov[esi + 12], edx
     }
 #endif
+#endif
 }
 
 
@@ -286,7 +307,7 @@ static inline void cpuid(int output[4], int functionnumber, int ecxleaf = 0) {
 static inline uint32_t vml_popcnt(uint32_t a) {
     return (uint32_t)_mm_popcnt_u32(a);  // Intel intrinsic. Supported by gcc and clang
 }
-#ifdef __x86_64__
+#if defined(__x86_64__) || defined(__aarch64__)
 static inline int64_t vml_popcnt(uint64_t a) {
     return _mm_popcnt_u64(a);            // Intel intrinsic.
 }
@@ -309,6 +330,17 @@ static inline int32_t vml_popcnt(uint64_t a) {
 }
 #endif
 
+#if defined(__ARM_NEON__)
+static uint32_t bit_scan_forward(uint32_t a) {
+    return __builtin_clz(__builtin_arm_rbit(a));
+}
+#ifdef __aarch64__
+static uint32_t bit_scan_forward(uint64_t a) {
+    return __builtin_clz(__builtin_arm_rbit64(a));
+}
+#endif
+#else
+// Define bit-scan-forward function. Gives index to lowest set bit
 // Define bit-scan-forward function. Gives index to lowest set bit
 #if defined (__GNUC__) || defined(__clang__)
     // gcc and Clang have no bit_scan_forward intrinsic
@@ -348,8 +380,18 @@ static inline uint32_t bit_scan_forward(uint64_t a) {
 }
 #endif
 #endif
+#endif
 
-
+#if defined(__ARM_NEON__)
+static uint32_t bit_scan_reverse(uint32_t a) {
+    return 31 - __builtin_clz(a);
+}
+#ifdef __aarch64__
+static uint32_t bit_scan_reverse(uint64_t a) {
+    return 63 - __builtin_clz(a);
+}
+#endif
+#else
 // Define bit-scan-reverse function. Gives index to highest set bit = floor(log2(a))
 #if defined (__GNUC__) || defined(__clang__)
 static inline uint32_t bit_scan_reverse(uint32_t a) __attribute__((pure));
@@ -391,6 +433,7 @@ static inline uint32_t bit_scan_reverse(uint64_t a) {
 }
 #endif
 #endif 
+#endif
 
 // Same function, for compile-time constants
 constexpr int bit_scan_reverse_const(uint64_t const n) {

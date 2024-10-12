@@ -28,13 +28,7 @@ sources = [
 
 libs = []
 
-if host_machine.cpu_family().startswith('x86')
-  project_args = ['-DTCANNY_X86']
-  if gcc_syntax
-    project_args += ['-mfpmath=sse', '-msse2']
-  endif
-  add_project_arguments(project_args, language: 'cpp')
-
+if host_machine.cpu_family().startswith('x86') or host_machine.cpu_family().startswith('arm') or host_machine.cpu_family().startswith('aarch64')
   sources += [
     'TCanny/TCanny_SSE2.cpp',
     'TCanny/VCL2/instrset.h',
@@ -59,6 +53,14 @@ if host_machine.cpu_family().startswith('x86')
     'TCanny/VCL2/vectormath_lib.h',
     'TCanny/VCL2/vectormath_trig.h'
   ]
+endif
+
+if host_machine.cpu_family().startswith('x86')
+  project_args = ['-DTCANNY_X86']
+  if gcc_syntax
+    project_args += ['-mfpmath=sse', '-msse2']
+  endif
+  add_project_arguments(project_args, language: 'cpp')
 
   libs += static_library('avx2', 'TCanny/TCanny_AVX2.cpp',
     cpp_args: gcc_syntax ? ['-mavx2', '-mfma'] : '/arch:AVX2',
@@ -71,6 +73,11 @@ if host_machine.cpu_family().startswith('x86')
     dependencies: vapoursynth_dep,
     gnu_symbol_visibility: 'hidden'
   )
+endif
+
+if host_machine.cpu_family().startswith('arm') or host_machine.cpu_family().startswith('aarch64')
+  project_args = ['-DTCANNY_ARM']
+  add_project_arguments(project_args, language: 'cpp')
 endif
 
 shared_module('tcanny', sources,

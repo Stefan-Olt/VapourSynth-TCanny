@@ -28,8 +28,10 @@
 
 using namespace std::literals;
 
-#ifdef TCANNY_X86
+#if defined(TCANNY_X86) || defined(TCANNY_ARM)
 template<typename pixel_t> extern void filter_sse2(const VSFrame* src, VSFrame* dst, const TCannyData* const VS_RESTRICT d, const VSAPI* vsapi) noexcept;
+#endif
+#ifdef TCANNY_X86
 template<typename pixel_t> extern void filter_avx2(const VSFrame* src, VSFrame* dst, const TCannyData* const VS_RESTRICT d, const VSAPI* vsapi) noexcept;
 template<typename pixel_t> extern void filter_avx512(const VSFrame* src, VSFrame* dst, const TCannyData* const VS_RESTRICT d, const VSAPI* vsapi) noexcept;
 #endif
@@ -581,16 +583,19 @@ static void VS_CC tcannyCreate(const VSMap* in, VSMap* out, [[maybe_unused]] voi
         {
             d->alignment = alignof(std::max_align_t);
 
-#ifdef TCANNY_X86
+#if defined(TCANNY_X86) || defined(TCANNY_ARM)
             const auto iset{ instrset_detect() };
 
+#ifdef TCANNY_X86
             if ((opt == 0 && iset >= 10) || opt == 4) {
                 vectorSize = 16;
                 d->alignment = 64;
             } else if ((opt == 0 && iset >= 8) || opt == 3) {
                 vectorSize = 8;
                 d->alignment = 32;
-            } else if ((opt == 0 && iset >= 2) || opt == 2) {
+            } else
+#endif
+            if ((opt == 0 && iset >= 2) || opt == 2) {
                 vectorSize = 4;
                 d->alignment = 16;
             }
@@ -604,7 +609,10 @@ static void VS_CC tcannyCreate(const VSMap* in, VSMap* out, [[maybe_unused]] voi
                     d->filter = filter_avx512<uint8_t>;
                 else if ((opt == 0 && iset >= 8) || opt == 3)
                     d->filter = filter_avx2<uint8_t>;
-                else if ((opt == 0 && iset >= 2) || opt == 2)
+                else
+#endif
+#if defined(TCANNY_X86) || defined(TCANNY_ARM)
+                if ((opt == 0 && iset >= 2) || opt == 2)
                     d->filter = filter_sse2<uint8_t>;
 #endif
             } else if (d->vi->format.bytesPerSample == 2) {
@@ -615,7 +623,10 @@ static void VS_CC tcannyCreate(const VSMap* in, VSMap* out, [[maybe_unused]] voi
                     d->filter = filter_avx512<uint16_t>;
                 else if ((opt == 0 && iset >= 8) || opt == 3)
                     d->filter = filter_avx2<uint16_t>;
-                else if ((opt == 0 && iset >= 2) || opt == 2)
+                else
+#endif
+#if defined(TCANNY_X86) || defined(TCANNY_ARM)
+                if ((opt == 0 && iset >= 2) || opt == 2)
                     d->filter = filter_sse2<uint16_t>;
 #endif
             } else {
@@ -626,7 +637,10 @@ static void VS_CC tcannyCreate(const VSMap* in, VSMap* out, [[maybe_unused]] voi
                     d->filter = filter_avx512<float>;
                 else if ((opt == 0 && iset >= 8) || opt == 3)
                     d->filter = filter_avx2<float>;
-                else if ((opt == 0 && iset >= 2) || opt == 2)
+                else
+#endif
+#if defined(TCANNY_X86) || defined(TCANNY_ARM)
+                if ((opt == 0 && iset >= 2) || opt == 2)
                     d->filter = filter_sse2<float>;
 #endif
             }
