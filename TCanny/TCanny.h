@@ -16,6 +16,12 @@
 #include "VCL2/vectormath_trig.h"
 #endif
 
+#if defined(__GNUC__) && !defined(__clang__)
+#define AUTO_PTR auto
+#else
+#define AUTO_PTR auto&
+#endif
+
 static constexpr float M_PIF = 3.14159265358979323846f;
 static constexpr float M_1_PIF = 0.318309886183790671538f;
 static constexpr float fltMax = std::numeric_limits<float>::max();

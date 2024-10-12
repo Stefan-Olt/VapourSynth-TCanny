@@ -26,7 +26,7 @@ static void gaussianBlur(const pixel_t* __srcp, float* temp, float* dstp, const 
                     auto srcp{ to_float(Vec8i().load_8us(_srcp[v] + x)) };
                     sum = mul_add(srcp, weightsV[v], sum);
                 } else {
-                    auto& srcp{ Vec8f().load_a(_srcp[v] + x) };
+                    AUTO_PTR srcp{ Vec8f().load_a(_srcp[v] + x) };
                     sum = mul_add(srcp, weightsV[v], sum);
                 }
             }
@@ -43,7 +43,7 @@ static void gaussianBlur(const pixel_t* __srcp, float* temp, float* dstp, const 
             auto sum{ zero_8f() };
 
             for (auto v{ -radiusH }; v <= radiusH; v++) {
-                auto& srcp{ Vec8f().load(temp + x + v) };
+                AUTO_PTR srcp{ Vec8f().load(temp + x + v) };
                 sum = mul_add(srcp, weightsH[v], sum);
             }
 
@@ -81,7 +81,7 @@ static void gaussianBlurH(const pixel_t* _srcp, float* temp, float* dstp, const 
             auto sum{ zero_8f() };
 
             for (auto v{ -radius }; v <= radius; v++) {
-                auto& srcp{ Vec8f().load(temp + x + v) };
+                AUTO_PTR srcp{ Vec8f().load(temp + x + v) };
                 sum = mul_add(srcp, weights[v], sum);
             }
 
@@ -115,7 +115,7 @@ static void gaussianBlurV(const pixel_t* __srcp, float* dstp, const int width, c
                     auto srcp{ to_float(Vec8i().load_8us(_srcp[v] + x)) };
                     sum = mul_add(srcp, weights[v], sum);
                 } else {
-                    auto& srcp{ Vec8f().load_a(_srcp[v] + x) };
+                    AUTO_PTR srcp{ Vec8f().load_a(_srcp[v] + x) };
                     sum = mul_add(srcp, weights[v], sum);
                 }
             }
@@ -179,14 +179,14 @@ static void detectEdge(float* blur, float* gradient, int* direction, const int w
             Vec8f gx, gy;
 
             if (op != FDOG) {
-                auto& c1{ Vec8f().load(prev + x - 1) };
-                auto& c2{ Vec8f().load_a(prev + x) };
-                auto& c3{ Vec8f().load(prev + x + 1) };
-                auto& c4{ Vec8f().load(cur + x - 1) };
-                auto& c6{ Vec8f().load(cur + x + 1) };
-                auto& c7{ Vec8f().load(next + x - 1) };
-                auto& c8{ Vec8f().load_a(next + x) };
-                auto& c9{ Vec8f().load(next + x + 1) };
+                AUTO_PTR c1{ Vec8f().load(prev + x - 1) };
+                AUTO_PTR c2{ Vec8f().load_a(prev + x) };
+                AUTO_PTR c3{ Vec8f().load(prev + x + 1) };
+                AUTO_PTR c4{ Vec8f().load(cur + x - 1) };
+                AUTO_PTR c6{ Vec8f().load(cur + x + 1) };
+                AUTO_PTR c7{ Vec8f().load(next + x - 1) };
+                AUTO_PTR c8{ Vec8f().load_a(next + x) };
+                AUTO_PTR c9{ Vec8f().load(next + x + 1) };
 
                 switch (op) {
                 case TRITICAL:
@@ -223,30 +223,30 @@ static void detectEdge(float* blur, float* gradient, int* direction, const int w
                     break;
                 }
             } else {
-                auto& c1{ Vec8f().load(prev2 + x - 2) };
-                auto& c2{ Vec8f().load(prev2 + x - 1) };
-                auto& c3{ Vec8f().load(prev2 + x) };
-                auto& c4{ Vec8f().load(prev2 + x + 1) };
-                auto& c5{ Vec8f().load(prev2 + x + 2) };
-                auto& c6{ Vec8f().load(prev + x - 2) };
-                auto& c7{ Vec8f().load(prev + x - 1) };
-                auto& c8{ Vec8f().load(prev + x) };
-                auto& c9{ Vec8f().load(prev + x + 1) };
-                auto& c10{ Vec8f().load(prev + x + 2) };
-                auto& c11{ Vec8f().load(cur + x - 2) };
-                auto& c12{ Vec8f().load(cur + x - 1) };
-                auto& c14{ Vec8f().load(cur + x + 1) };
-                auto& c15{ Vec8f().load(cur + x + 2) };
-                auto& c16{ Vec8f().load(next + x - 2) };
-                auto& c17{ Vec8f().load(next + x - 1) };
-                auto& c18{ Vec8f().load(next + x) };
-                auto& c19{ Vec8f().load(next + x + 1) };
-                auto& c20{ Vec8f().load(next + x + 2) };
-                auto& c21{ Vec8f().load(next2 + x - 2) };
-                auto& c22{ Vec8f().load(next2 + x - 1) };
-                auto& c23{ Vec8f().load(next2 + x) };
-                auto& c24{ Vec8f().load(next2 + x + 1) };
-                auto& c25{ Vec8f().load(next2 + x + 2) };
+                AUTO_PTR c1{ Vec8f().load(prev2 + x - 2) };
+                AUTO_PTR c2{ Vec8f().load(prev2 + x - 1) };
+                AUTO_PTR c3{ Vec8f().load(prev2 + x) };
+                AUTO_PTR c4{ Vec8f().load(prev2 + x + 1) };
+                AUTO_PTR c5{ Vec8f().load(prev2 + x + 2) };
+                AUTO_PTR c6{ Vec8f().load(prev + x - 2) };
+                AUTO_PTR c7{ Vec8f().load(prev + x - 1) };
+                AUTO_PTR c8{ Vec8f().load(prev + x) };
+                AUTO_PTR c9{ Vec8f().load(prev + x + 1) };
+                AUTO_PTR c10{ Vec8f().load(prev + x + 2) };
+                AUTO_PTR c11{ Vec8f().load(cur + x - 2) };
+                AUTO_PTR c12{ Vec8f().load(cur + x - 1) };
+                AUTO_PTR c14{ Vec8f().load(cur + x + 1) };
+                AUTO_PTR c15{ Vec8f().load(cur + x + 2) };
+                AUTO_PTR c16{ Vec8f().load(next + x - 2) };
+                AUTO_PTR c17{ Vec8f().load(next + x - 1) };
+                AUTO_PTR c18{ Vec8f().load(next + x) };
+                AUTO_PTR c19{ Vec8f().load(next + x + 1) };
+                AUTO_PTR c20{ Vec8f().load(next + x + 2) };
+                AUTO_PTR c21{ Vec8f().load(next2 + x - 2) };
+                AUTO_PTR c22{ Vec8f().load(next2 + x - 1) };
+                AUTO_PTR c23{ Vec8f().load(next2 + x) };
+                AUTO_PTR c24{ Vec8f().load(next2 + x + 1) };
+                AUTO_PTR c25{ Vec8f().load(next2 + x + 2) };
 
                 gx = c5 + c25 + c4 + c24 + mul_add(2.0f, c10 + c20 + c9 + c19, 3.0f * (c15 + c14))
                     - c2 - c22 - c1 - c21 - mul_add(2.0f, c7 + c17 + c6 + c16, 3.0f * (c12 + c11));
@@ -294,7 +294,7 @@ static void nonMaximumSuppression(const int* _direction, float* _gradient, float
 
     for (auto y{ 0 }; y < height; y++) {
         for (auto x{ 0 }; x < width; x += Vec8f().size()) {
-            auto& direction{ Vec8i().load_a(_direction + x) };
+            AUTO_PTR direction{ Vec8i().load_a(_direction + x) };
 
             auto mask{ Vec8fb(direction == 0) };
             auto gradient{ max(Vec8f().load(_gradient + x + 1), Vec8f().load(_gradient + x - 1)) };
@@ -327,7 +327,7 @@ static void binarizeCE(const float* _srcp, pixel_t* dstp, const int width, const
                        const int peak) noexcept {
     for (auto y{ 0 }; y < height; y++) {
         for (auto x{ 0 }; x < width; x += Vec8f().size()) {
-            auto& srcp{ Vec8f().load_a(_srcp + x) };
+            AUTO_PTR srcp{ Vec8f().load_a(_srcp + x) };
 
             if constexpr (std::is_same_v<pixel_t, uint8_t>) {
                 auto mask{ Vec16cb(compress_saturated(compress_saturated(Vec8ib(srcp == fltMax), zero_si256()), zero_si256()).get_low()) };
@@ -351,7 +351,7 @@ static void discretizeGM(const float* _srcp, pixel_t* dstp, const int width, con
                          const int peak) noexcept {
     for (auto y{ 0 }; y < height; y++) {
         for (auto x{ 0 }; x < width; x += Vec8f().size()) {
-            auto& srcp{ Vec8f().load_a(_srcp + x) };
+            AUTO_PTR srcp{ Vec8f().load_a(_srcp + x) };
 
             if constexpr (std::is_same_v<pixel_t, uint8_t>) {
                 auto result{ compress_saturated_s2u(compress_saturated(truncatei(srcp + 0.5f), zero_si256()), zero_si256()).get_low() };
